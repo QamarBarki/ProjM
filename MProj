@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>project</title>
+    
+    <!-- Include Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+   <script>
+        const loadData = (sortKey) => {
+            fetch("https://fakestoreapi.com/products")
+            .then(res => res.json())
+            .then(products => {
+                if (sortKey === 'price') {
+                    // Calculate the average price
+                    const totalPrice = products.reduce((sum, product) => sum + product.price, 0);
+                    const averagePrice = totalPrice / products.length;
+
+                    // Filter products above average price
+                    const aboveAverageProducts = products.filter(product => product.price > averagePrice);
+
+                    // Display the above average products on the page
+                    const resultDiv = document.getElementById("result");
+                    resultDiv.innerHTML = `
+                        <h2>Above Average Price Products:</h2>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Product Name</th>
+                                    <th>Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${aboveAverageProducts.map(product => `
+                                    <tr>
+                                        <td>${product.title}</td>
+                                        <td>$${product.price}</td>
+                                    </tr>
+                                `).join("")}
+                                <tr>
+                                    <td><strong>Average Price:</strong></td>
+                                    <td><strong>$${averagePrice.toFixed(2)}</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    `;
+                } else if (sortKey === 'rating') {
+                    // Sort products by rating in descending order
+                    const topRatedProducts = products.sort((a, b) => b.rating.rate - a.rating.rate).slice(0, 5);
+
+                    // Display the top rated products on the page
+                    const resultDiv = document.getElementById("result");
+                    resultDiv.innerHTML = `
+                        <h2>Top Rated Products:</h2>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Product Name</th>
+                                    <th>Rating</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${topRatedProducts.map(product => `
+                                    <tr>
+                                        <td>${product.title}</td>
+                                        <td>${product.rating.rate}</td>
+                                    </tr>
+                                `).join("")}
+                            </tbody>
+                        </table>
+                    `;
+                } else if (sortKey === 'categories') {
+                    // Get distinct categories
+                    const distinctCategories = Array.from(new Set(products.map(product => product.category)));
+
+                    // Display distinct categories on the page
+                    const resultDiv = document.getElementById("result");
+                    resultDiv.innerHTML = `
+                        <h2>Distinct Categories:</h2>
+                        <ul>
+                            ${distinctCategories.map(category => `
+                                <li>${category}</li>
+                            `).join("")}
+                        </ul>
+                    `;
+                } else if (sortKey === 'average') {
+                    // Calculate average price and rating
+                    const totalPrice = products.reduce((sum, product) => sum + product.price, 0);
+                    const totalRating = products.reduce((sum, product) => sum + product.rating.rate, 0);
+                    const averagePrice = totalPrice / products.length;
+                    const averageRating = totalRating / products.length;
+
+                    // Display average price and rating on the page
+                    const resultDiv = document.getElementById("result");
+                    resultDiv.innerHTML = `
+                        <h2>Average Price and Rating:</h2>
+                        <p><strong>Average Price:</strong> $${averagePrice.toFixed(2)}</p>
+                        <p><strong>Average Rating:</strong> ${averageRating.toFixed(2)}</p>
+                    `;
+                } else if (sortKey === 'top5ratinglowestprice') {
+                    // Sort products by rating in descending order, then by price in ascending order
+                    const topRatedAndLowestPriceProducts = products
+                        .sort((a, b) => b.rating.rate - a.rating.rate || a.price - b.price)
+                        .slice(0, 5);
+
+                    // Display the top rated and lowest price products on the page
+                    const resultDiv = document.getElementById("result");
+                    resultDiv.innerHTML = `
+                        <h2>Top 5 Rated Products with Lowest Price:</h2>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Product Name</th>
+                                    <th>Rating</th>
+                                    <th>Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${topRatedAndLowestPriceProducts.map(product => `
+                                    <tr>
+                                        <td>${product.title}</td>
+                                        <td>${product.rating.rate}</td>
+                                        <td>$${product.price}</td>
+                                    </tr>
+                                `).join("")}
+                            </tbody>
+                        </table>
+                    `;
+                } else if (sortKey === 'user') {
+                    // Fetch user data
+                    fetch("https://fakestoreapi.com/users")
+                    .then(res => res.json())
+                    .then(users => {
+                        // Create a table for user information
+                        const userTable = document.createElement("table");
+                        userTable.className = "table table-bordered";
+
+                        // Create table header
+                        const headerRow = userTable.insertRow();
+                        const headerCells = ['User Name', 'Email', 'City', 'Product Names', 'Prices', 'Total Bill'];
+                        for (const headerCell of headerCells) {
+                            const th = document.createElement("th");
+                            th.textContent = headerCell;
+                            headerRow.appendChild(th);
+                        }
+
+                        // Populate the table with user information
+                        for (const user of users) {
+                            const userRow = userTable.insertRow();
+                            const cell1 = userRow.insertCell();
+                            const cell2 = userRow.insertCell();
+                            const cell3 = userRow.insertCell();
+                            const cell4 = userRow.insertCell();
+                            const cell5 = userRow.insertCell();
+                            const cell6 = userRow.insertCell();
+
+                            cell1.textContent = user.username;
+                            cell2.textContent = user.email;
+                            cell3.textContent = user.address.city;
+
+                            // Get product details for the user
+                            const userProducts = products.filter(product => product.userId === user.id);
+                            const productNames = userProducts.map(product => product.title).join(', ');
+                            const productPrices = userProducts.map(product => `$${product.price}`).join(', ');
+                            const totalBill = userProducts.reduce((sum, product) => sum + product.price, 0);
+
+                            cell4.textContent = productNames;
+                            cell5.textContent = productPrices;
+                            cell6.textContent = `$${totalBill.toFixed(2)}`;
+                        }
+
+                        // Display the user information table on the page
+                        const resultDiv = document.getElementById("result");
+                        resultDiv.innerHTML = '';
+                        resultDiv.appendChild(userTable);
+                    })
+                    .catch(error => {
+                        console.error(error);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error(error);
+            });
+        }
+   </script>
+
+</head>
+<body>
+     <button onclick="loadData('price')">Above Average Price</button>
+     <button onclick="loadData('rating')">Top Rated Products</button>
+     <button onclick="loadData('categories')">Distinct Categories</button>
+     <button onclick="loadData('average')">Average Price and Rating</button>
+     <button onclick="loadData('top5ratinglowestprice')">Top 5 Rated with Lowest Price</button>
+     <button onclick="loadData('user')">User Product Info</button>
+     <div id="result"></div>
+     
+    <!-- Include Bootstrap JS (Optional) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
